@@ -1,9 +1,9 @@
 from flask import request, render_template, Blueprint,abort
 import json
-from searchai.models import DataTrain, Respone
+from searchai.models import DataTrain, Respone, FBAdTrain
 from searchai import db, bcrypt 
 # from flask_login import login_user, current_user, logout_user, login_required
-from searchai.dataset.utils import get_data_from_fb
+from searchai.dataset.utils import get_data_from_fb, get_data_from_dmmspy
 from searchai.users.utils import verify_login 
 
 dataset = Blueprint('dataset', __name__)
@@ -13,6 +13,7 @@ def train_data():
     if(request.get_json()['keyword'] is None):
         return "False"
     keyword = request.get_json()['keyword']
+    # get_data_from_dmmspy()
     get_data_from_fb(keyword)
     return render_template('index.html')
 
@@ -21,27 +22,14 @@ def get_product():
     try:
         id_product = request.get_json()['id'] 
         token = request.get_json()['token']  
+        
+        print(id_product)
         if token and id_product and request.method == 'POST' and verify_login(token):  
-            product = DataTrain.objects.get(id=id_product);
-
-            # list_products = []
-            # for item in products:  
-            #     product = {
-            #         "id":str(item.id),
-            #         "title":item.title,
-            #         "description":item.description,
-            #         "image_file":item.image_file, 
-            #         "author": item.author,
-            #         "image_author": item.image_author,
-            #         "like":item.like,
-            #         "brand":item.brand,
-            #         "date_posted":item.date_posted,
-            #         "kind":item.kind,
-            #         "url_page":item.url_page
-            #     }  
-            #     list_products.append(product)
+            product =  FBAdTrain.objects.filter(id=id_product).first(); 
+            product.snap_shot = json.loads(product.snap_shot) 
+            product.snap_shot['additional_info'] = json.loads(product.snap_shot['additional_info']) 
             payload = {
-                "product": product
+                "product": json.loads(product.to_json())
             }  
             return json.dumps(Respone(True, payload, "GET PRODUCT SUCCESS"))   
         return json.dumps(Respone(False, {}, "GET PRODUCT FAILED"))  
@@ -53,33 +41,15 @@ def get_products():
     # try:
     token = request.get_json()['token']  
     print( verify_login(token))
-    if token and request.method == 'POST' and verify_login(token):   
-        # page = request.get_json()['page'] 
-        
-        products = DataTrain.objects.all();
-
+    if token and request.method == 'POST' and verify_login(token):  
+        products = FBAdTrain.objects.paginate(page=1, per_page=100)
         list_products = []
         for item in products: 
-            product = {
-                "id":str(item.id),
-                "title":item.title,
-                "description":item.description,
-                # "image_file":item.image_file, 
-                "author": item.author,
-                "image_author": item.image_author,
-                "like":item.like,
-                "brand":item.brand,
-                "date_posted":item.date_posted,
-                "kind":item.kind,
-                "url_page":item.url_page,
-                "url_image":item.url_image,
-                "tags":item.tags,
-                "age_data":item.age_data,
-                "view":item.view,
-                "price":item.price,
-                "currency":item.currency
-            }  
-            list_products.append(product)
+            item.snap_shot = json.loads(item.snap_shot)
+            # item.snap_shot.additional_info = json.loads(item.snap_shot.additional_info)
+            item.snap_shot['additional_info'] = json.loads(item.snap_shot['additional_info'])
+            
+            list_products.append(json.loads(item.to_json()))
         payload = {
             "products": list_products
         }  

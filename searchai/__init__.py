@@ -5,7 +5,7 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from searchai.config import Config
 # from flask_dance.contrib.twitter import make_twiiter_blueprint, twitter
-
+# from flask_cors import CORS, cross_origin
 
 db = MongoEngine() 
 bcrypt = Bcrypt()
@@ -18,8 +18,10 @@ mail = Mail()
  
 def create_app(config_class=Config):
     app = Flask(__name__)
+    
     app.config.from_object(Config) 
-
+    # CORS(app, supports_credentials=True)
+    
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
