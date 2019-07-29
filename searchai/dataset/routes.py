@@ -42,7 +42,7 @@ def get_products():
     token = request.get_json()['token']  
     print( verify_login(token))
     if token and request.method == 'POST' and verify_login(token):  
-        products = FBAdTrain.objects.paginate(page=1, per_page=100)
+        products = FBAdTrain.objects.all(); 
         list_products = []
         for item in products: 
             item.snap_shot = json.loads(item.snap_shot)
