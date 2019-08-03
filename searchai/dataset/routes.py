@@ -14,7 +14,8 @@ def train_data():
         return "False"
     keyword = request.get_json()['keyword']
     # get_data_from_dmmspy()
-    get_data_from_fb(keyword)
+    # get_data_from_fb(keyword)
+    # check_image_similar()
     return render_template('index.html')
 
 @dataset.route('/get_product', methods=['GET', 'POST'])
@@ -36,13 +37,45 @@ def get_product():
     except:
         return json.dumps(Respone(False, {}, "Unauthorized"))   
 
+@dataset.route('/get_product_per_page', methods=['GET', 'POST'])
+def get_product_per_page():  
+    if request.get_json()['page'] is None or request.get_json()['per_page'] is None or request.get_json()['token'] is None or request.get_json()['query'] is None:
+        return json.dumps(Respone(True, payload, "GET PRODUCTS FAILED"))    
+    page = request.get_json()['page']
+    token = request.get_json()['token']  
+    query = request.get_json()['query']  
+    per_page = request.get_json()['per_page']
+    if token and request.method == 'POST' and verify_login(token):
+        quantity = 0  
+        if query == '': 
+            products = FBAdTrain.objects.paginate(page=page, per_page=per_page)
+        else:
+            try:
+                dummy = FBAdTrain.objects.filter(page_name__contains=query)
+                quantity = len(dummy)
+                products = dummy.paginate(page=page, per_page=per_page)
+            except:
+                return json.dumps(Respone(False, {}, "GET PRODUCTS FAILED"))  
+        list_products = []
+        for item in products.items: 
+            item.snap_shot = json.loads(item.snap_shot)
+            # item.snap_shot.additional_info = json.loads(item.snap_shot.additional_info)
+            item.snap_shot['additional_info'] = json.loads(item.snap_shot['additional_info'])
+            
+            list_products.append(json.loads(item.to_json()))
+        payload = {
+            "quantity": quantity,
+            "products": list_products
+        }  
+        return json.dumps(Respone(True, payload, "GET PRODUCTS SUCCESS"))    
+    return json.dumps(Respone(False, {}, "Unauthorized"))  
+
 @dataset.route('/get_products', methods=['GET', 'POST'])
 def get_products():  
     # try:
-    token = request.get_json()['token']  
-    print( verify_login(token))
+    token = request.get_json()['token']
     if token and request.method == 'POST' and verify_login(token):  
-        products = FBAdTrain.objects.all(); 
+        products = FBAdTrain.objects.all()
         list_products = []
         for item in products: 
             item.snap_shot = json.loads(item.snap_shot)
@@ -53,11 +86,28 @@ def get_products():
         payload = {
             "products": list_products
         }  
-        return json.dumps(Respone(True, payload, "GET PRODUCTS SUCCESS"))   
-        # return json.dumps(Respone(False, {}, "GET PRODUCTS FAILED"))  
-    # except:
+        return json.dumps(Respone(True, payload, "GET PRODUCTS SUCCESS"))    
     return json.dumps(Respone(False, {}, "Unauthorized"))   
 
+
+@dataset.route('/search', methods=['GET', 'POST'])
+def product():  
+    query = request.get_json()['query'] 
+    token = request.get_json()['token']  
+    if token and request.method == 'POST' and verify_login(token): 
+        products = FBAdTrain.objects.paginate(page=1, per_page=1)
+        list_products = []
+        for item in products.items: 
+            item.snap_shot = json.loads(item.snap_shot)
+            # item.snap_shot.additional_info = json.loads(item.snap_shot.additional_info)
+            item.snap_shot['additional_info'] = json.loads(item.snap_shot['additional_info'])
+            
+            list_products.append(json.loads(item.to_json()))
+        payload = {
+            "products": list_products
+        }  
+        return json.dumps(Respone(True, payload, "GET PRODUCTS SUCCESS"))
+    return json.dumps(Respone(False, {}, "Unauthorized"))
 # @dataset.route('/get_products', methods=['GET', 'POST'])
 # def get_products():  
 #     global gencap 

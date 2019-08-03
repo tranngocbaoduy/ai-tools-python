@@ -26,6 +26,7 @@ class ScrapeFBAds:
             options.add_argument("headless")
         options.add_argument("--disable-notifications")
         options.add_argument("--disable-infobars")
+        options.add_argument('--proxy-server=12.8.246.129:41845')
         #options.add_argument('--no-sandbox')
         #options.add_argument('--disable-dev-shm-usage')
         options.add_experimental_option('w3c', False)
@@ -109,7 +110,7 @@ class ScrapeFBAds:
                     if len(item) == 0:
                         countAdConflictOrFailed +=1
                     for element in item: 
-                        if FBAdTrain.objects.filter(ad_id=element['adid']).first() is None:
+                        if FBAdTrain.objects.filter(ad_id__istartswith=element['adid'][:5]).first() is None:
                             # handele infomation to add ads to db
                             additional_info = handleAdditionalInfo(element)   
                             snap_shot = handleInfoAd(element, additional_info)

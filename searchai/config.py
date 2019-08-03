@@ -3,7 +3,7 @@ import urllib.parse
 
 class Config:   
     SECRET_KEY = '4039f53a0856b3012f91bcaf1b49ad80'
-    MONGODB_DB = urllib.parse.quote_plus("test")
+    MONGODB_DB = urllib.parse.quote_plus("search_engine")
     MONGODB_USERNAME = urllib.parse.quote_plus('tamaki')
     MONGODB_PASSWORD = urllib.parse.quote_plus('mushroomzz99')
 
