@@ -167,7 +167,7 @@ class InfoAd(db.Document,JsonSerializable):
     title = db.StringField(required=True, default='title')  
     version = db.StringField(required=True, default='version')   
 
-class FBAdTrain(db.Document,JsonSerializable): 
+class FBAdTrain(db.Document,JsonSerializable): # 16 field of FB ok ?
     ad_id = db.StringField(required=True, default='adId') 
     ad_archive_id = db.StringField(required=True, default='ad_archiveID')  
     end_date= db.IntField(required=True, default=0)  
@@ -179,40 +179,58 @@ class FBAdTrain(db.Document,JsonSerializable):
     page_id = db.StringField(required=True, default='pageID') 
     page_name = db.StringField(required=True, default='pageName')  
     snap_shot = db.StringField(required=True, default='snap_shot')
+    
     tags = db.ListField(db.StringField(max_length=30))
     age_data = db.StringField(required=True, default='age_data') 
     view = db.StringField(required=True, default='view') 
     currency = db.StringField(required=True, default='currency') 
     price = db.StringField(required=True, default='price') 
     region_data = db.StringField(required=True, default='region_data') 
- 
-
-class DMMAdTrain(db.Document): 
-    ad_id = db.StringField(required=True, default='adId')    
+  
+class AdTrain(db.Document):  #combine to Adtrain 16 field of Adtrain combinate with FB vs DMM
+    page_id = db.StringField(required=True, default='pageID') 
+    page_name = db.StringField(required=True, default='pageName') 
+    post_id= db.StringField(required=True, default='post_id') 
+    ad_id = db.StringField(required=True, default='ad_id')  
+    title = db.StringField(required=True, default='title')
+    start_date = db.IntField(required=True, default=1564642800)   
     number_of_like = db.IntField(required=True, default=0)
     number_of_comment = db.IntField(required=True, default=0)
-    number_of_share = db.IntField(required=True, default=0) 
-    is_active = db.BooleanField(required=True, default=True) 
-    original_image_url = db.StringField(required=True, default='original_image_url') 
-    page_id = db.StringField(required=True, default='pageID') 
-    page_name = db.StringField(required=True, default='pageName')  
+    number_of_share = db.IntField(required=True, default=0)   
+    image_url_mockup = db.StringField(required=True, default='image_url_mockup')  
+    image_url_product = db.StringField(required=True, default='image_url_product')  
+    image_url_profile = db.StringField(required=True, default='image_url_profile')  
     link_url =  db.StringField(required=True, default='link_url')  
+    description = db.StringField(required=True, default='description')  
+    platform = db.StringField(required=True, default='platform')  
 
-class DataTrain(db.Document): 
-    author = db.StringField(max_length=100,required=True, default='page') 
-    title = db.StringField(required=True, default='title')
-    description = db.StringField(required=True, default='description')
-    # image_file = db.StringField(max_length=50,required=True, default='avatar.png') 
-    image_author = db.StringField(required=True, default='avatar.png') 
-    url_page = db.StringField(required=True, default='url_page')
-    url_image = db.StringField(required=True, default='url_image') 
-    # date_posted = db.DateTimeField(default = datetime.utcnow())
-    date_posted = db.StringField(max_length=50,required=True, default='date_posted')
-    kind = db.StringField(max_length=100,required=True, default='kind') 
-    like = db.StringField(max_length=50,required=True, default='like') 
-    brand = db.StringField(required=True, default='brand') 
+    is_active = db.BooleanField(required=True, default=True) 
+
     tags = db.ListField(db.StringField(max_length=30))
     age_data = db.StringField(required=True, default='age_data') 
     view = db.StringField(required=True, default='view') 
     currency = db.StringField(required=True, default='currency') 
     price = db.StringField(required=True, default='price') 
+    region_data = db.StringField(required=True, default='region_data') 
+
+class DMMAdTrain(db.Document):  # 9 field of DMMM 
+    page_id = db.StringField(required=True, default='pageID') 
+    page_name = db.StringField(required=True, default='pageName') 
+    post_id= db.StringField(required=True, default='post_id') 
+    number_of_like = db.IntField(required=True, default=0)
+    number_of_comment = db.IntField(required=True, default=0)
+    number_of_share = db.IntField(required=True, default=0) 
+    image_url = db.StringField(required=True, default='image_url')  
+    image_url_mockup = db.StringField(required=True, default='image_url_mockup')  
+    image_url_product = db.StringField(required=True, default='image_url_product')  
+    image_url_profile = db.StringField(required=True, default='image_url_profile')  
+    link_url =  db.StringField(required=True, default='link_url')  
+    description = db.StringField(required=True, default='description') 
+    platform = db.StringField(required=True, default='platform')  
+    is_active = db.BooleanField(required=True, default=True)  
+
+class CollectionPageId(db.Document): 
+    page_id = db.StringField(primary_key=True,required=True, default='page')  
+    quantity = db.IntField(required=True, default=0)   
+    updated_date = db.DateTimeField(default = datetime.utcnow()) 
+    created_date = db.DateTimeField(default = datetime.utcnow()) 

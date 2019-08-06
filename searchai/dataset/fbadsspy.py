@@ -26,7 +26,7 @@ class ScrapeFBAds:
             options.add_argument("headless")
         options.add_argument("--disable-notifications")
         options.add_argument("--disable-infobars")
-        options.add_argument('--proxy-server=12.8.246.129:41845')
+        # options.add_argument('--proxy-server=195.171.16.146:8080')
         #options.add_argument('--no-sandbox')
         #options.add_argument('--disable-dev-shm-usage')
         options.add_experimental_option('w3c', False)
@@ -35,22 +35,20 @@ class ScrapeFBAds:
         self.browser = webdriver.Chrome(desired_capabilities=caps,executable_path=exe_path, options=options) 
     
     def access_data(self, 
-                    keyword="", 
+                    keyword="",  
+                    view_all_page_id="",
                     active_status='active',
                     ad_type='all',
                     impression_search_field='has_impressions_lifetime',
-                    country='ALL',
-                    forward_cursor='AQHR1enqfEieI7KgCdMemQtSlgQ4nItVNItPyS4eu_SXP_z1T9CHKjjSRMeIdONuGDW-',
-                    backward_cursor='AQHRORNcOr-XagxP6aXVYBYCdjScXpaEphL-lBrVBxj8nn90miepXQEs5lADOR9BJoh0'
+                    country='ALL'
                     ):
         query = {
             'active_status': active_status,
             'ad_type': ad_type,
             'country': country,
-            'impression_search_field':impression_search_field,
-            'forward_cursor':forward_cursor,
-            'backward_cursor':backward_cursor,
-            'q': keyword
+            'impression_search_field':impression_search_field, 
+            'q': keyword,
+            'view_all_page_id': view_all_page_id
         }
         self.browser.get(
             "https://www.facebook.com/ads/library/?{}".format(urlencode(query))
@@ -107,19 +105,16 @@ class ScrapeFBAds:
                 ans = json.loads(r.text[9:])['payload']['results']
                 for item in ans: 
                     countAds += len(item) 
-                    if len(item) == 0:
-                        countAdConflictOrFailed +=1
-                    for element in item: 
-                        if FBAdTrain.objects.filter(ad_id__istartswith=element['adid'][:5]).first() is None:
-                            # handele infomation to add ads to db
-                            additional_info = handleAdditionalInfo(element)   
-                            snap_shot = handleInfoAd(element, additional_info)
-                            handleFBAdTrain(element, snap_shot, tags)
-                            countAdSuccess += 1 
-                        else:
-                            countAdConflictOrFailed +=1 
-                        print('Item', i)
-                        i+=1
+                    if FBAdTrain.objects.filter(ad_id=item[0]['adid']).first() is None:
+                        # handele infomation to add ads to db
+                        additional_info = handleAdditionalInfo(item[0])   
+                        snap_shot = handleInfoAd(item[0], additional_info)
+                        handleFBAdTrain(item[0], snap_shot, tags)
+                        countAdSuccess += 1 
+                    else:
+                        countAdConflictOrFailed +=1 
+                    print('Item - step 1', i)
+                    i+=1
         except NoSuchWindowException:
             pass      
         print('')
@@ -133,19 +128,18 @@ class ScrapeFBAds:
         i =0 
         list = self.browser.find_elements_by_class_name('_7kfh') 
         for item in list: 
-            print('Item', i)
+            print('Item - step 2', i)
             i+=1 
-            self.browser.execute_script("arguments[0].click();", item)
-            time.sleep(1)   
+            self.browser.execute_script("arguments[0].click();", item) 
             webdriver.ActionChains(self.browser).send_keys(Keys.ESCAPE).perform()
-            # time.sleep(1.5) 
-        list_old_version = self.browser.find_elements_by_class_name('_7tv4')
-        i =0 
-        for item in list_old_version:
-            print('Item', i)
-            i+=1 
-            self.browser.execute_script("arguments[0].click();", item)
-            time.sleep(1) 
+            time.sleep(2) 
+        # list_old_version = self.browser.find_elements_by_class_name('_7tv4')
+        # i =0 
+        # for item in list_old_version:
+        #     print('Item', i)
+        #     i+=1 
+        #     self.browser.execute_script("arguments[0].click();", item)
+        #     time.sleep(1) 
         time.sleep(3) 
         
         self.get_archive_info() 
@@ -198,7 +192,7 @@ class ScrapeFBAds:
                     countAdInfoFailed += 1
             else:
                 countAdInfoFailed += 1
-            print('Item', i)
+            print('Item - step 3', i)
             i+=1
         
         print('                       Ads Info Success Or Update',str(countAdInfoSuccess))  
@@ -346,8 +340,7 @@ def handleInfoAd(element, additional_info):
         title=title,version=version)
     return snap_shot.to_json() 
 
-def handleFBAdTrain(element, snap_shot, tag): 
-    print(snap_shot)
+def handleFBAdTrain(element, snap_shot, tag):  
     ad_id = 'ad_id'
     ad_archive_id = 'ad_archive_id'
     end_date= 0
