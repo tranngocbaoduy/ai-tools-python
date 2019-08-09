@@ -13,7 +13,7 @@ from flask import current_app
 from io import BytesIO 
 from datetime import datetime
 
-from searchai.models import DataTrain, AdditionalInfo, InfoAd, FBAdTrain, DMMAdTrain, AdTrain
+from searchai.models import DataTrain, AdditionalInfo, InfoAd, FBAdTrain, DMMAdTrain, AdTrain, DMMPageAd
 from searchai import bcrypt 
 from searchai.dataset.fbadsspy import ScrapeFBAds
 from searchai.dataset.dmmspy import ScrapeDMMSPYAds
@@ -35,7 +35,7 @@ def get_data_from_fb(id,keyword):
 def get_data_from_dmmspy(): 
     dmm_spy_ads = ScrapeDMMSPYAds("searchai/dataset/chromedriver")
     dmm_spy_ads.access_data("baoduy19971997@gmail.com","mushroomzz99")
-    # dmm_spy_ads.scroll_to_end(0.5)
+    dmm_spy_ads.scroll_to_end(1)
     dmm_spy_ads.DMMSPYget()
 
 
@@ -116,7 +116,7 @@ def save_picture_data(url):
 def convertToMyAd():
     countDMM = 0
     listDMM = DMMAdTrain.objects.all()
-    
+    print('        |------------------   convert ads   ------------------|   ')     
     for item in listDMM:  
         if AdTrain.objects.filter(post_id=item.post_id).first() is None and item.is_active:
             myAd = AdTrain( page_id=item.page_id,
@@ -125,15 +125,18 @@ def convertToMyAd():
                             number_of_like=item.number_of_like,
                             number_of_comment=item.number_of_comment,
                             number_of_share=item.number_of_share, 
+                            start_date=item.start_date,
                             image_url_mockup=item.image_url_mockup,
                             image_url_product=item.image_url_product,
                             image_url_profile=item.image_url_profile,
                             link_url=item.link_url,
                             description=item.description,
-                            platform=item.platform)
+                            platform=item.platform,
+                            domain=item.domain,
+                            pixel_id=item.pixel_id)
             myAd.save()
             countDMM +=1
-    print('        |------------------   convert ads   ------------------|   ')     
+   
     print('                         DMM Ads: ',str(countDMM))  
 
     countFB = 0
@@ -154,7 +157,7 @@ def convertToMyAd():
                             link_url=item.snap_shot['link_url'],
                             description=item.snap_shot['link_description'], 
                             
-                            start_date=item.start_date,
+                            start_date=str(item.start_date),
                             tags=item.tags,
                             age_data=item.age_data,
                             view=item.view,
@@ -167,3 +170,19 @@ def convertToMyAd():
     print('                         Total: ',str(countFB+countDMM)) 
     print('        |-----------------------------------------------------|   ')
     print('') 
+
+def collectPage():
+    print('        |------------------   Collect Page   -----------------|   ')  
+    count = 0 
+    listAd = DMMAdTrain.objects.all();
+    for item in listAd:
+        if DMMPageAd.objects.filter(page_id=item.page_id).first() is None:
+            pageAd = DMMPageAd(page_id=item.page_id,page_name=item.page_name)
+            pageAd.save()
+            count+=1
+
+ 
+    print('                         Total: ',str(count)) 
+    print('        |-----------------------------------------------------|   ')
+    print('') 
+        

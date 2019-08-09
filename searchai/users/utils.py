@@ -32,8 +32,9 @@ def send_reset_email(user):
     msg = Message('Password Reset Request',
                  sender='noreply@demo.com',
                  recipients=[user.email])
+                #  {'https://aitools-be.herokuapp.com/reset_password?token='+token}
     msg.body = f'''To reset your password, visit following link: 
-                {'https://aitools-be.herokuapp.com/reset_password?token='+token}
+                {'http://localhost:5000/reset_password?token='+token}
                 If you did not make request then simply ignore this email and no changes will be made.
                 '''
     mail.send(msg)

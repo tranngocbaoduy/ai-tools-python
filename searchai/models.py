@@ -193,7 +193,7 @@ class AdTrain(db.Document):  #combine to Adtrain 16 field of Adtrain combinate w
     post_id= db.StringField(required=True, default='post_id') 
     ad_id = db.StringField(required=True, default='ad_id')  
     title = db.StringField(required=True, default='title')
-    start_date = db.IntField(required=True, default=1564642800)   
+    start_date = db.StringField(required=True, default="1564642800")   
     number_of_like = db.IntField(required=True, default=0)
     number_of_comment = db.IntField(required=True, default=0)
     number_of_share = db.IntField(required=True, default=0)   
@@ -203,18 +203,22 @@ class AdTrain(db.Document):  #combine to Adtrain 16 field of Adtrain combinate w
     link_url =  db.StringField(required=True, default='link_url')  
     description = db.StringField(required=True, default='description')  
     platform = db.StringField(required=True, default='platform')  
-
-    is_active = db.BooleanField(required=True, default=True) 
+    domain = db.StringField(required=True, default="domain")    
+    pixel_id = db.StringField(required=True, default='pixel_id') 
 
     tags = db.ListField(db.StringField(max_length=30))
     age_data = db.StringField(required=True, default='age_data') 
     view = db.StringField(required=True, default='view') 
     currency = db.StringField(required=True, default='currency') 
     price = db.StringField(required=True, default='price') 
-    region_data = db.StringField(required=True, default='region_data') 
+    region_data = db.StringField(required=True, default='region_data')
+  
+    is_active = db.BooleanField(required=True, default=True) 
+    created_date = db.DateTimeField(default = datetime.utcnow())  
 
 class DMMAdTrain(db.Document):  # 9 field of DMMM 
     page_id = db.StringField(required=True, default='pageID') 
+    dmm_id = db.StringField(required=True, default='dmmID') 
     page_name = db.StringField(required=True, default='pageName') 
     post_id= db.StringField(required=True, default='post_id') 
     number_of_like = db.IntField(required=True, default=0)
@@ -225,10 +229,20 @@ class DMMAdTrain(db.Document):  # 9 field of DMMM
     image_url_product = db.StringField(required=True, default='image_url_product')  
     image_url_profile = db.StringField(required=True, default='image_url_profile')  
     link_url =  db.StringField(required=True, default='link_url')  
+    start_date = db.StringField(required=True, default="1564642800")   
     description = db.StringField(required=True, default='description') 
-    platform = db.StringField(required=True, default='platform')  
+    platform = db.StringField(required=True, default='platform')   
+    domain = db.StringField(required=True, default="domain")   
+    title = db.StringField(required=True, default='title') 
+    pixel_id = db.StringField(required=True, default='pixel_id')
+    product_url = db.StringField(required=True, default='product_url')
     is_active = db.BooleanField(required=True, default=True)  
 
+class DMMPageAd(db.Document):  # 9 field of DMMM 
+    page_id = db.StringField(primary_key=True,required=True, default='pageID')  
+    page_name = db.StringField(required=True, default='pageName') 
+    created_date = db.DateTimeField(default = datetime.utcnow()) 
+     
 class CollectionPageId(db.Document): 
     page_id = db.StringField(primary_key=True,required=True, default='page')  
     quantity = db.IntField(required=True, default=0)   

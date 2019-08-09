@@ -83,7 +83,7 @@ class ScrapeFBAds:
         countAds = 0
         countAdSuccess = 0
         countAdConflictOrFailed = 0
-        if self.scroll_to_end(0.5) == False:
+        if self.scroll_to_end(1) == False:
             print('                          YOU REACH BOTTOM') 
         try:
             jar = requests.cookies.RequestsCookieJar()
@@ -158,7 +158,7 @@ class ScrapeFBAds:
                 url = msg['message']['params']['request']['url']
                 if url.startswith('https://www.facebook.com/ads/library/async/insights/'):
                     ads_performance_logs.append(msg)
-        for count, msg in enumerate(ads_performance_logs):
+        for count, msg in enumerate(ads_performance_logs[-1]):
             r = requests.post(msg['message']['params']['request']['url'],
                                 headers=msg['message']['params']['request']['headers'],
                                 data=msg['message']['params']['request']['postData'],

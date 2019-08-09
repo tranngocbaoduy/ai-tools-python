@@ -3,17 +3,19 @@ import json
 from searchai.models import DataTrain, Respone, FBAdTrain, AdTrain
 from searchai import db, bcrypt 
 # from flask_login import login_user, current_user, logout_user, login_required
-from searchai.dataset.utils import get_data_from_fb, get_data_from_dmmspy, convertToMyAd
+from searchai.dataset.utils import get_data_from_fb, get_data_from_dmmspy, convertToMyAd, collectPage
 from searchai.users.utils import verify_login 
 
 dataset = Blueprint('dataset', __name__)
 
 @dataset.route("/train_data", methods=['GET', 'POST'])
-def train_data():
-    if(request.get_json()['query'] is None):
-        return "False"
-    query = request.get_json()['query'] 
+def train_data(): 
     get_data_from_dmmspy() 
+    return render_template('index.html')
+
+@dataset.route("/collect_page", methods=['GET', 'POST'])
+def collect_page(): 
+    collectPage() 
     return render_template('index.html')
 
 @dataset.route("/train_data_fb", methods=['GET', 'POST'])
@@ -22,14 +24,12 @@ def train_data_fb():
         return "False"
     query = request.get_json()['query'] 
     id = "656414371135999"
+    id = ""
     get_data_from_fb(id,query) 
     return render_template('index.html')
 
 @dataset.route("/convert_to_my_ad", methods=['GET', 'POST'])
-def convert_to_my_ad():
-    if(request.get_json()['query'] is None):
-        return "False"
-    query = request.get_json()['query']
+def convert_to_my_ad(): 
     convertToMyAd() 
     return render_template('index.html')
 # @dataset.route('/get_product', methods=['GET', 'POST'])
@@ -107,13 +107,14 @@ def get_product_per_page():
     token = request.get_json()['token']  
     query = request.get_json()['query']  
     per_page = request.get_json()['per_page']
+    print(query)
     if token and request.method == 'POST' and verify_login(token):
         quantity = 0  
         if query == '': 
             products = AdTrain.objects.paginate(page=page, per_page=per_page)
         else:
             try:
-                dummy = AdTrain.objects.filter(page_name__contains=query)
+                dummy = AdTrain.objects.filter(page_name__icontains=query.lower())
                 quantity = len(dummy)
                 products = dummy.paginate(page=page, per_page=per_page)
             except:

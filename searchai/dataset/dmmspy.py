@@ -1,4 +1,7 @@
-import time
+import time 
+import json
+import lxml
+import requests 
 
 from searchai.models import DMMAdTrain
 
@@ -65,7 +68,7 @@ class ScrapeDMMSPYAds:
             )
             if lastCount==lenOfPage:
                 count += 1
-            if count == 10 or lenOfPage > 10000: 
+            if count == 10 or lenOfPage > 1000: 
                 break;
  
     def get_source(self):
@@ -99,29 +102,61 @@ class ScrapeDMMSPYAds:
     #         except NoSuchWindowException: 
     #             print('Ads Success',str(countAdSuccess))  
     #             pass
+    # def DMMSPYget1(self):  
+    #     countAdSuccess = 0
+    #     countBug = 0
+    #     # while(True):
+    #     # if countBug == 40:
+    #     #     break;
+    #     try:  
 
+    #         elements=self.browser.find_elements_by_class_name('spy3-grid')  
+    #         count=0
+    #         for item in elements:
+    #             listInfo = item.text.split("\n")
+    #             for i in listInfo:
+    #                 print(i)
+    #             count+=1
+    #             print('------------------------------------------------')
+    #         print("count=",count)   
 
-    def DMMSPYget(self): 
-        # query = {
-        #     'sort':'trending'
-        # }
-        # print(query)
-        # self.browser.get(
-        #     "https://dmmspy.com/spyads/dynamic-grid?sort=trending"
-        # )
+    #     except NoSuchElementException: 
+    #         print('NoSuchElementException',str(countAdSuccess))
+    #         countBug+=1
+    #         pass
+    #     except NoSuchWindowException:
+    #         print('NoSuchWindowException',str(countAdSuccess))
+    #         countBug+=1
+    #         pass
+    #     except ElementNotVisibleException:
+    #         print('ElementNotVisibleException',str(countAdSuccess))
+    #         countBug+=1
+    #         pass
+
+    def DMMSPYget(self):  
         countAdSuccess = 0
+        countBug = 0
         while(True):
-            try:
-                
-                element=self.browser.find_element_by_class_name('spy3-grid-container')
-                
-                page_name=self.browser.find_element_by_xpath('//*[@id="search-result-list"]/div/div[1]/div/div[3]/div/div/span/a[1]').text
-                number_of_like =self.browser.find_element_by_class_name('label-primary').text
-                number_of_comment=self.browser.find_element_by_class_name('label-info').text
-                number_of_share=self.browser.find_element_by_class_name('label-success').text
-                image_url=self.browser.find_element_by_xpath('//*[@id="search-result-list"]/div/div[1]/div/div[3]/a/img').get_attribute('src')
-                image_url_profile =self.browser.find_element_by_xpath('//*[@id="search-result-list"]/div/div[1]/div/div[4]/div[1]/div[5]/a/img').get_attribute('src')
+            if countBug == 40:
+                break;
+            try: 
+                element=self.browser.find_element_by_class_name('spy3-grid-container')  
 
+                # for item in elements:
+                #     print(item)
+                #     print(item.text)
+
+                page_name=self.browser.find_element_by_xpath('//*[@id="search-result-list"]/div/div[1]/div/div[3]/div/div/span/a[1]').text
+                print("page_name")
+                number_of_like =self.browser.find_element_by_class_name('label-primary').text
+                print("number_of_like")
+                number_of_comment=self.browser.find_element_by_class_name('label-info').text
+                print("number_of_comment")
+                number_of_share=self.browser.find_element_by_class_name('label-success').text
+                print("number_of_share")
+                image_url=self.browser.find_element_by_xpath('//*[@id="search-result-list"]/div/div[1]/div/div[3]/a/img').get_attribute('src')
+                print("image_url")
+                
                 link_url= self.browser.find_element_by_class_name('linked-link').text
                 
                 time.sleep(3)
@@ -133,38 +168,70 @@ class ScrapeDMMSPYAds:
                     pass
                 except ElementClickInterceptedException:
                     pass
+                print("click into image")    
                 #exit
                 time.sleep(1)
 
                 list_info = self.browser.find_elements_by_class_name("poi-modal")
                 # for item in list_info:
-
-                # for item in list_info:
-                #     print(item.text)
-                #     for i in item:
-                #         print(i.text) 
-                # print(list_info.get_attribute('div').get_attribute('div'))
-                # print(list_info.get_attribute('div').get_attribute('div').get_attribute('div'))  
-                # print(list_info.get_attribute('div').get_attribute('div').get_attribute('div')[0])  
-                # print(list_info)
+                jar = requests.cookies.RequestsCookieJar()
+                for cookie in self.browser.get_cookies():
+                    jar.set(cookie['name'], cookie['value'], domain=cookie['domain'], path=cookie['path'])
+                
+                for entry in self.browser.get_log('performance'):
+                    msg = json.loads(entry['message'])
+                    if msg.get('message', {}).get('method', {}) == 'Network.requestWillBeSent':
+                        url = msg['message']['params']['request']['url']
+                        if url.startswith('https://dmmspy.com/spyads/post-info?'):  
+                            #parsed get ad archive id
+                            parsed = urlparse.urlparse(str(msg['message']['params']['request']['url'])) 
+                            owner_id = urlparse.parse_qs(parsed.query)['owner_id'][0]
+                            dmm_id = urlparse.parse_qs(parsed.query)['id'][0] 
+                            break; 
+                            
+                time.sleep(3)
                 post_id=self.browser.find_element_by_xpath('//*[@id="modal-xl"]/div/div/div[1]/a[1]').text
+                print("post_id")
                 page_id = self.browser.find_element_by_xpath('//*[@id="modal-xl"]/div/div/div[1]/a[2]').text
+                print("page_id")
                 platform = self.browser.find_element_by_xpath('//*[@id="modal-xl"]/div/div/div[1]/span[1]').text 
+                print("flatform")
+                self.browser.find_element_by_xpath('//*[@id="modal-xl"]/div/div/div[2]/div/div[1]/ul/li[1]/a').click()
+                time.sleep(1) 
                 image_url_mockup =self.browser.find_element_by_xpath('//*[@id="poi-mockup"]/a/img').get_attribute('src')
-
+                print("image_url_mockup")
                 self.browser.find_element_by_xpath('//*[@id="modal-xl"]/div/div/div[2]/div/div[1]/ul/li[2]/a').click()
                 time.sleep(1)
-                image_url_product=self.browser.find_element_by_xpath('//*[@id="poi-image"]/a/img').get_attribute('src')
 
+                
+                image_url_product=self.browser.find_element_by_xpath('//*[@id="poi-image"]/a/img').get_attribute('src')
+                print("image_url_product")
                 self.browser.find_element_by_xpath('//*[@id="modal-xl"]/div/div/div[2]/div/div[1]/ul/li[3]/a').click()
-                time.sleep(0.3)
+                time.sleep(1) 
                 
+                start_date = self.browser.find_element_by_xpath('//*[@id="poi-post-detail"]/div/div/div[2]').get_attribute('title')
+                domain = self.browser.find_element_by_xpath('//*[@id="poi-post-detail"]/div/div/div[3]').text 
+                product_url = self.browser.find_element_by_xpath('//*[@id="poi-post-detail"]/div/div/div[4]').text 
+                pixel_id = self.browser.find_element_by_xpath('//*[@id="poi-post-detail"]/div/div/div[5]').text
+                title = self.browser.find_element_by_xpath('//*[@id="poi-post-detail"]/div/div/div[6]').text
+                
+                
+
+                try:
+                    # image_url_profile =self.browser.find_element_by_xpath('//*[@id="poi-post-detail"]/div/div/div[1]/div[3]/a/img').get_attribute('src')
+                    image_url_profile =self.browser.find_element_by_class_name('post-owner-avatar').get_attribute('src')
+                except NoSuchElementException: 
+                    image_url_profile=""
+                    print('NoSuchElementException',"NO image_url_profile")
+                    countBug+=1
+                    pass 
+
                 description=self.browser.find_element_by_class_name('description').text  
+                print("description")
                 webdriver.ActionChains(self.browser).send_keys(Keys.ESCAPE).perform()
-                
                 #hết new
-                print('Ads Success',str(countAdSuccess))
-                if handleDMMAdTrain(post_id,
+                if handleDMMAdTrain(dmm_id,
+                                    post_id,
                                     page_id,
                                     page_name,
                                     number_of_like,
@@ -176,23 +243,34 @@ class ScrapeDMMSPYAds:
                                     image_url_profile,
                                     link_url,
                                     description,
-                                    platform):
+                                    platform,
+                                    start_date,
+                                    domain,
+                                    title,
+                                    pixel_id,
+                                    product_url):
                     countAdSuccess += 1
                 self.browser.execute_script("""
                     var element = arguments[0];
                     element.parentNode.removeChild(element);
                     """,element)
-            except NoSuchElementException:
+            except NoSuchElementException: 
                 print('NoSuchElementException',str(countAdSuccess))
+                countBug+=1
                 pass
             except NoSuchWindowException:
                 print('NoSuchWindowException',str(countAdSuccess))
+                countBug+=1
                 pass
             except ElementNotVisibleException:
                 print('ElementNotVisibleException',str(countAdSuccess))
+                countBug+=1
                 pass
+        
+        print('Ads Success',str(countAdSuccess))
 
-def handleDMMAdTrain(post_id,
+def handleDMMAdTrain(dmm_id,
+                    post_id,
                     page_id,
                     page_name,
                     number_of_like,
@@ -204,9 +282,15 @@ def handleDMMAdTrain(post_id,
                     image_url_profile,
                     link_url,
                     description,
-                    platform):
-    if DMMAdTrain.objects.filter(post_id=post_id).first() is None:
+                    platform,
+                    start_date,
+                    domain,
+                    title,
+                    pixel_id,
+                    product_url):
+    if DMMAdTrain.objects.filter(page_id=page_id).filter(post_id=post_id).first() is None:
         dmm_ad = DMMAdTrain( 
+                            dmm_id=dmm_id,
                             page_name=page_name,
                             number_of_like=number_of_like,
                             number_of_comment=number_of_comment,
@@ -219,7 +303,12 @@ def handleDMMAdTrain(post_id,
                             link_url=link_url,
                             platform=platform,
                             post_id=post_id,
-                            page_id=page_id)
+                            page_id=page_id,
+                            start_date=start_date,
+                            domain=domain,
+                            title=title,
+                            pixel_id=pixel_id,
+                            product_url=product_url)
         dmm_ad.save()
         
         return True
